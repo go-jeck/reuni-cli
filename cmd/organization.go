@@ -15,10 +15,16 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
+	"github.com/go-squads/reuni-cli/helper"
 	"github.com/spf13/cobra"
 )
+
+var organizationName string
+var key string
 
 // organizationCmd represents the organization command
 var organizationCmd = &cobra.Command{
@@ -45,8 +51,41 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		key = getToken()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("create organization called")
+		data := make(map[string]string)
+		data["name"] = organizationName
+		dataJSON, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		httphelper := &helper.HttpHelper{
+			URL:           "http://127.0.0.1:8080/organization",
+			Method:        "POST",
+			Authorization: key,
+			Payload:       dataJSON,
+		}
+
+		res, err := httphelper.SendRequest()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		if res.StatusCode == http.StatusCreated {
+			fmt.Println("Organization Created")
+		} else {
+			data := make(map[string]interface{})
+			err = json.NewDecoder(res.Body).Decode(&data)
+			res.Body.Close()
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("HTTP Error " + fmt.Sprint(data["status"]) + ": " + fmt.Sprint(data["message"]))
+		}
 	},
 }
 
@@ -61,5 +100,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// organizationCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	createOrganizationCmd.Flags().StringVarP(&organizationName, "name", "n", "", "Name for your new organization")
 }
