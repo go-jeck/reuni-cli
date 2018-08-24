@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
-	"log"
+	"os"
 	"syscall"
 
 	"github.com/go-squads/reuni-cli/helper"
@@ -24,39 +25,49 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(username) > 0 {
-			fmt.Println("Your password: ")
-			bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-			password = string(bytePassword)
-			fmt.Println()
-
-			data := make(map[string]string)
-			data["username"] = username
-			data["password"] = password
-			dataJSON, err := json.Marshal(data)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
+		if len(username) <= 0 {
+			fmt.Println("Invalid credentials provided")
+			for {
+				fmt.Print("Username: ")
+				reader := bufio.NewReader(os.Stdin)
+				username, _ = reader.ReadString('\n')
+				username = string(username[0 : len(username)-1])
+				if username != "" {
+					break
+				}
 			}
-
-			httphelper := &helper.HttpHelper{
-				URL:           "http://127.0.0.1:8080/login",
-				Method:        "POST",
-				Authorization: "",
-				Payload:       dataJSON,
-			}
-			res := make(map[string]interface{})
-			err = helper.FetchData(httphelper, &res)
-			if err != nil {
-				log.Println("Error fetching configuration:" + err.Error())
-				return
-			}
-
-			fileHelper := &helper.FileHelper{
-				Payload: fmt.Sprint(res["token"]),
-			}
-			fileHelper.WriteFile()
 		}
+
+		fmt.Println("Your password: ")
+		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		password = string(bytePassword)
+
+		data := make(map[string]string)
+		data["username"] = username
+		data["password"] = password
+		dataJSON, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		httphelper := &helper.HttpHelper{
+			URL:           "http://127.0.0.1:8080/login",
+			Method:        "POST",
+			Authorization: "",
+			Payload:       dataJSON,
+		}
+		res := make(map[string]interface{})
+		err = helper.FetchData(httphelper, &res)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		fileHelper := &helper.FileHelper{
+			Payload: fmt.Sprint(res["token"]),
+		}
+		fileHelper.WriteFile()
 	},
 }
 

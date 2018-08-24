@@ -22,6 +22,6 @@ func (f *FileHelper) WriteFile() {
 		return
 	}
 	defer keyfile.Close()
-	fmt.Fprintf(keyfile, "%v\n", f.Payload)
+	fmt.Fprintf(keyfile, "%v", f.Payload)
 	fmt.Println("Credentials created")
 }

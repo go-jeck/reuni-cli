@@ -25,7 +25,7 @@ func (h *HttpHelper) SendRequest() (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", h.Authorization)
+	req.Header.Set("Authorization", "Bearer "+h.Authorization)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
