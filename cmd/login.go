@@ -39,7 +39,7 @@ to quickly create a Cobra application.`,
 		}
 
 		fmt.Println("Your password: ")
-		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
 		password = string(bytePassword)
 
 		data := make(map[string]string)

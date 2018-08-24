@@ -15,9 +15,17 @@
 package cmd
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"syscall"
 
+	"github.com/go-squads/reuni-cli/helper"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // signupCmd represents the signup command
@@ -31,7 +39,87 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		var name, username, password, confirmPassword, email string
 		fmt.Println("signup called")
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			fmt.Print("Name: ")
+			name, _ = reader.ReadString('\n')
+			name = string(name[0 : len(name)-1])
+			if name != "" {
+				break
+			}
+		}
+		for {
+			fmt.Print("Username: ")
+			username, _ = reader.ReadString('\n')
+			username = string(username[0 : len(username)-1])
+			if username != "" {
+				break
+			}
+		}
+		for {
+			fmt.Print("Password: ")
+			bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
+			password = string(bytePassword)
+			fmt.Println()
+			if password != "" {
+				break
+			}
+		}
+		for {
+			fmt.Print("Confirm Password: ")
+			byteConfirmPassword, _ := terminal.ReadPassword(int(syscall.Stdin))
+			confirmPassword = string(byteConfirmPassword)
+			fmt.Println()
+			if confirmPassword != "" && strings.Compare(password, confirmPassword) == 0 {
+				break
+			}
+		}
+		for {
+			fmt.Print("Email: ")
+			email, _ = reader.ReadString('\n')
+			email = string(email[0 : len(email)-1])
+			if email != "" {
+				break
+			}
+		}
+
+		data := make(map[string]string)
+		data["name"] = name
+		data["username"] = username
+		data["password"] = password
+		data["email"] = email
+		dataJSON, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		httphelper := &helper.HttpHelper{
+			URL:           "http://127.0.0.1:8080/signup",
+			Method:        "POST",
+			Authorization: key,
+			Payload:       dataJSON,
+		}
+
+		res, err := httphelper.SendRequest()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		if res.StatusCode == http.StatusCreated {
+			fmt.Println("User Created")
+		} else {
+			data := make(map[string]interface{})
+			err = json.NewDecoder(res.Body).Decode(&data)
+			res.Body.Close()
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("HTTP Error " + fmt.Sprint(data["status"]) + ": " + fmt.Sprint(data["message"]))
+		}
 	},
 }
 
