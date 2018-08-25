@@ -31,7 +31,7 @@ import (
 // signupCmd represents the signup command
 var signupCmd = &cobra.Command{
 	Use:   "signup",
-	Short: "A brief description of your command",
+	Short: "Creating new user",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
