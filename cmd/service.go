@@ -30,7 +30,6 @@ var serviceCmd = &cobra.Command{
 	Long:  `Manage service in your organization. Organization name is required input for this operation`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if !strings.EqualFold(cmd.CalledAs(), "service") {
-			fmt.Println(cmd.CalledAs())
 			key = getToken()
 			if len(organizationName) < 1 {
 				fmt.Println("Invalid Organization")
