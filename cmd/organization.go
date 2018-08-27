@@ -22,12 +22,7 @@ var key string
 var organizationCmd = &cobra.Command{
 	Use:   "organization",
 	Short: "Manage your organization",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long:  `Manage your organization`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		key = getToken()
 	},
@@ -109,5 +104,5 @@ func init() {
 	organizationCmd.AddCommand(listOrganizationCmd)
 	organizationCmd.AddCommand(createOrganizationCmd)
 
-	createOrganizationCmd.Flags().StringVarP(&organizationName, "name", "n", "", "Name for your new organization")
+	createOrganizationCmd.Flags().StringVarP(&organizationName, "Organization name", "o", "", "Name for your new organization")
 }
