@@ -23,7 +23,6 @@ type service struct {
 	CreatedBy          string     `json:"created_by"`
 }
 
-// serviceCmd represents the service command
 var serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Manage service in your organization",
@@ -97,7 +96,7 @@ var createServiceCmd = &cobra.Command{
 		}
 
 		if res.StatusCode == http.StatusCreated {
-			fmt.Println("Organization Created")
+			fmt.Println("Service Created")
 		} else {
 			data := make(map[string]interface{})
 			err = json.NewDecoder(res.Body).Decode(&data)
@@ -150,11 +149,39 @@ var deleteServiceCmd = &cobra.Command{
 	},
 }
 
+var getTokenServiceCmd = &cobra.Command{
+	Use:   "getToken",
+	Short: "Get authorization token for service",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if len(serviceName) < 1 {
+			fmt.Println("Invalid Service")
+			os.Exit(1)
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		httphelper := &helper.HttpHelper{
+			URL:           "http://127.0.0.1:8080/" + organizationName + "/" + serviceName + "/token",
+			Method:        "GET",
+			Authorization: key,
+		}
+
+		res := make(map[string]interface{})
+		err := helper.FetchData(httphelper, &res)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		fmt.Println(res["authorization_token"])
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(serviceCmd)
 	serviceCmd.AddCommand(listServiceCmd)
 	serviceCmd.AddCommand(createServiceCmd)
 	serviceCmd.AddCommand(deleteServiceCmd)
+	serviceCmd.AddCommand(getTokenServiceCmd)
 
 	serviceCmd.PersistentFlags().StringVarP(&organizationName, "organization", "o", "", "Your organization name")
 	serviceCmd.PersistentFlags().StringVarP(&serviceName, "service", "s", "", "Your service name")
