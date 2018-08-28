@@ -37,7 +37,7 @@ var listOrganizationCmd = &cobra.Command{
 	Long:  `Creating new Organization. to create new organization, use flag -n for organization name`,
 	Run: func(cmd *cobra.Command, args []string) {
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/organization",
+			URL:           fmt.Sprintf("%v/organization", "http://127.0.0.1:8080"),
 			Method:        "GET",
 			Authorization: key,
 		}
@@ -73,7 +73,7 @@ var createOrganizationCmd = &cobra.Command{
 			return
 		}
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/organization",
+			URL:           fmt.Sprintf("%v/organization", "http://127.0.0.1:8080"),
 			Method:        "POST",
 			Authorization: key,
 			Payload:       dataJSON,

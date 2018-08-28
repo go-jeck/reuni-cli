@@ -95,6 +95,14 @@ var unsetConfigurationCmd = &cobra.Command{
 	},
 }
 
+var changesConfigurationCmd = &cobra.Command{
+	Use:   "changes",
+	Short: "Display changes from configuration",
+	Run: func(cmd *cobra.Command, args []string) {
+		displayChanges()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configurationCmd)
 	configurationCmd.AddCommand(listConfigurationCmd)
@@ -102,6 +110,7 @@ func init() {
 	configurationCmd.AddCommand(updateAllConfigurationCmd)
 	configurationCmd.AddCommand(setConfigurationCmd)
 	configurationCmd.AddCommand(unsetConfigurationCmd)
+	configurationCmd.AddCommand(changesConfigurationCmd)
 
 	configurationCmd.PersistentFlags().StringVarP(&organizationName, "organization", "o", "", "Your organization name")
 	configurationCmd.PersistentFlags().StringVarP(&serviceName, "service", "s", "", "Your service name")
@@ -185,6 +194,51 @@ func displayListVersions() {
 	}
 	result := columnize.SimpleFormat(output)
 	fmt.Println(result)
+}
+
+func displayChanges() {
+	if version < 1 {
+		version = fetchLatestVersion(organizationName, serviceName, namespaceName)
+	} else {
+		if version == 1 {
+			displayConfig()
+			return
+		}
+	}
+
+	previousVersion := version - 1
+
+	currentConfig := fetchConfiguration(organizationName, serviceName, namespaceName, version)
+	previousConfig := fetchConfiguration(organizationName, serviceName, namespaceName, previousVersion)
+
+	curConfig := currentConfig.Configuration
+	prevConfig := previousConfig.Configuration
+
+	deletedConfig := getConfigurationDeleted(curConfig, prevConfig)
+	createdConfig := getConfigurationCreated(curConfig, prevConfig)
+	changedConfig := getConfigurationChanged(curConfig, prevConfig)
+
+	templateHeader := []string{
+		"Service|" + serviceName,
+		"Namespace|" + namespaceName,
+		"Version|" + strconv.Itoa(version),
+		"Changed By|" + currentConfig.Created_by,
+	}
+
+	fmt.Println(columnize.SimpleFormat(templateHeader))
+
+	if len(deletedConfig) > 0 {
+		fmt.Println("Deleted Keys")
+		fmt.Println(displayKeyVal(deletedConfig))
+	}
+	if len(createdConfig) > 0 {
+		fmt.Println("Created Keys")
+		fmt.Println(displayKeyVal(createdConfig))
+	}
+	if len(changedConfig) > 0 {
+		fmt.Println("Changed Keys")
+		fmt.Println(displayKeyVal(changedConfig))
+	}
 }
 
 func updateAllConfig() {
@@ -275,6 +329,47 @@ func updateAllConfig() {
 		return
 	}
 	updateConfig(dataJSON)
+}
+
+func getConfigurationDeleted(currentConfig, previousConfig map[string]string) map[string]string {
+	return getKeydifference(currentConfig, previousConfig)
+}
+func getConfigurationCreated(currentConfig, previousConfig map[string]string) map[string]string {
+	return getKeydifference(previousConfig, currentConfig)
+}
+
+func getConfigurationChanged(currentConfig, previousConfig map[string]string) map[string]string {
+	mapB := map[string]bool{}
+	for k, _ := range previousConfig {
+		mapB[k] = true
+	}
+
+	res := make(map[string]string)
+	for k, v := range currentConfig {
+		if _, ok := mapB[k]; ok {
+			if previousConfig[k] != v {
+				res[k] = "from '" + previousConfig[k] + "' to '" + v + "'"
+			}
+		}
+	}
+
+	return res
+}
+
+func getKeydifference(configA, configB map[string]string) map[string]string {
+	mapA := map[string]bool{}
+	for k, _ := range configA {
+		mapA[k] = true
+	}
+
+	res := make(map[string]string)
+	for k, v := range configB {
+		if _, ok := mapA[k]; !ok {
+			res[k] = v
+		}
+	}
+
+	return res
 }
 
 //ui helper

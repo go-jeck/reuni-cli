@@ -93,7 +93,7 @@ reuni-cli namespace create -o org -s service -n default -c '{"firstKey":"firstVa
 		fmt.Println(string(dataJSON))
 
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/" + serviceName + "/namespaces",
+			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080/", organizationName, serviceName),
 			Method:        "POST",
 			Authorization: key,
 			Payload:       dataJSON,
@@ -124,7 +124,7 @@ var listNamespaceCmd = &cobra.Command{
 	Short: "Display all namespace",
 	Run: func(cmd *cobra.Command, args []string) {
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/" + serviceName + "/namespaces",
+			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080/", organizationName, serviceName),
 			Method:        "GET",
 			Authorization: key,
 		}
