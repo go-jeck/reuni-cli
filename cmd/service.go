@@ -46,7 +46,7 @@ var listServiceCmd = &cobra.Command{
 	Short: "Display all service",
 	Run: func(cmd *cobra.Command, args []string) {
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/services",
+			URL:           fmt.Sprintf("%v/%v/services", "http://127.0.0.1:8080/", organizationName),
 			Method:        "GET",
 			Authorization: key,
 		}
@@ -83,7 +83,7 @@ var createServiceCmd = &cobra.Command{
 		}
 
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/services",
+			URL:           fmt.Sprintf("%v/%v/services", "http://127.0.0.1:8080/", organizationName),
 			Method:        "POST",
 			Authorization: key,
 			Payload:       dataJSON,
@@ -123,7 +123,7 @@ var deleteServiceCmd = &cobra.Command{
 		}
 
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/services",
+			URL:           fmt.Sprintf("%v/%v/services", "http://127.0.0.1:8080/", organizationName),
 			Method:        "DELETE",
 			Authorization: key,
 			Payload:       dataJSON,
@@ -160,7 +160,7 @@ var getTokenServiceCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		httphelper := &helper.HttpHelper{
-			URL:           "http://127.0.0.1:8080/" + organizationName + "/" + serviceName + "/token",
+			URL:           fmt.Sprintf("%v/%v/%v/token", "http://127.0.0.1:8080/", organizationName, serviceName),
 			Method:        "GET",
 			Authorization: key,
 		}
