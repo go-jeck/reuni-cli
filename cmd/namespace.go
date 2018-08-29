@@ -60,7 +60,7 @@ var createNamespaceCmd = &cobra.Command{
 	Short: "Create new namespace",
 	Long: `This command is for creating new namespace. Use flag -o for
 organization name, -s for service name and -n for namespace name. 
-this command also require intial configuration using flag -c followed by
+this command also require intial configuration which you write in text editor or you can use flag -c followed by
 json object.
 
 for example
@@ -72,15 +72,15 @@ reuni-cli namespace create -o org -s service -n default -c '{"firstKey":"firstVa
 			return
 		}
 
-		if len(configurationsData) < 1 {
-			fmt.Println("Configuration can't be empty")
-			return
-		}
-		fmt.Println(configurationsData)
-
 		configurationsPayload := make(map[string]string)
-		err := json.Unmarshal([]byte(configurationsData), &configurationsPayload)
-		fmt.Println(configurationsPayload)
+		if len(configurationsData) < 1 {
+			configurationsPayload = helper.Edit(configurationsPayload)
+		} else {
+			err := json.Unmarshal([]byte(configurationsData), &configurationsPayload)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
 
 		var data namespaceStore
 		data.Namespace = namespaceName
@@ -90,10 +90,11 @@ reuni-cli namespace create -o org -s service -n default -c '{"firstKey":"firstVa
 			fmt.Println(err.Error())
 			return
 		}
+		fmt.Println(fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080", organizationName, serviceName))
 		fmt.Println(string(dataJSON))
 
 		httphelper := &helper.HttpHelper{
-			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080/", organizationName, serviceName),
+			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080", organizationName, serviceName),
 			Method:        "POST",
 			Authorization: key,
 			Payload:       dataJSON,
@@ -124,7 +125,7 @@ var listNamespaceCmd = &cobra.Command{
 	Short: "Display all namespace",
 	Run: func(cmd *cobra.Command, args []string) {
 		httphelper := &helper.HttpHelper{
-			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080/", organizationName, serviceName),
+			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080", organizationName, serviceName),
 			Method:        "GET",
 			Authorization: key,
 		}

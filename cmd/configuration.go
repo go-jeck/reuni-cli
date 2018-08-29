@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -245,82 +244,8 @@ func updateAllConfig() {
 	version = fetchLatestVersion(organizationName, serviceName, namespaceName)
 	config := fetchConfiguration(organizationName, serviceName, namespaceName, version)
 
-	fmt.Println(displayHeader(serviceName, namespaceName, config.Version))
-	fmt.Println(displayKeyVal(config.Configuration))
+	newConfig := helper.Edit(config.Configuration)
 
-	newConfig := config.Configuration
-
-	reader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Print("Do you want to edit a key (Y/N): ")
-		editFlag, _ := reader.ReadString('\n')
-		editFlag = string(editFlag[0 : len(editFlag)-1])
-		if strings.EqualFold(editFlag, "N") {
-			break
-		}
-
-		fmt.Print("Which key: ")
-		key, _ := reader.ReadString('\n')
-		key = string(key[0 : len(key)-1])
-		if _, exists := newConfig[key]; exists {
-			fmt.Print("New Value: ")
-			val, _ := reader.ReadString('\n')
-			val = string(val[0 : len(val)-1])
-			newConfig[key] = val
-		} else {
-			fmt.Println("key not found!")
-		}
-	}
-
-	for {
-		fmt.Print("Do you want to delete a key (Y/N): ")
-		deleteFlag, _ := reader.ReadString('\n')
-		deleteFlag = string(deleteFlag[0 : len(deleteFlag)-1])
-		if strings.EqualFold(deleteFlag, "n") {
-			break
-		}
-
-		fmt.Print("Which key: ")
-		key, _ := reader.ReadString('\n')
-		key = string(key[0 : len(key)-1])
-		if _, exists := newConfig[key]; exists {
-			delete(newConfig, key)
-		} else {
-			fmt.Println("key not found!")
-		}
-	}
-
-	for {
-		fmt.Print("Do you want to add a key (Y/N): ")
-		addFlag, _ := reader.ReadString('\n')
-		addFlag = string(addFlag[0 : len(addFlag)-1])
-		if strings.EqualFold(addFlag, "n") {
-			break
-		}
-
-		var key string
-		for {
-			fmt.Print("Key: ")
-			key, _ = reader.ReadString('\n')
-			key = string(key[0 : len(key)-1])
-			if key != "" {
-				break
-			}
-		}
-
-		fmt.Print("Value: ")
-		val, _ := reader.ReadString('\n')
-		val = string(val[0 : len(val)-1])
-		newConfig[key] = val
-	}
-
-	fmt.Println("supposed to display new configuration")
-	fmt.Println("supposed to ask edit again")
-
-	fmt.Println("sending new data")
-
-	fmt.Println(displayKeyVal(newConfig))
 	data := make(map[string]interface{})
 	data["configuration"] = newConfig
 	dataJSON, err := json.Marshal(data)
@@ -328,14 +253,15 @@ func updateAllConfig() {
 		fmt.Println(err.Error())
 		return
 	}
+
 	updateConfig(dataJSON)
 }
 
 func getConfigurationDeleted(currentConfig, previousConfig map[string]string) map[string]string {
-	return getKeydifference(currentConfig, previousConfig)
+	return getKeydifference(previousConfig, currentConfig)
 }
 func getConfigurationCreated(currentConfig, previousConfig map[string]string) map[string]string {
-	return getKeydifference(previousConfig, currentConfig)
+	return getKeydifference(currentConfig, previousConfig)
 }
 
 func getConfigurationChanged(currentConfig, previousConfig map[string]string) map[string]string {
@@ -357,14 +283,14 @@ func getConfigurationChanged(currentConfig, previousConfig map[string]string) ma
 }
 
 func getKeydifference(configA, configB map[string]string) map[string]string {
-	mapA := map[string]bool{}
-	for k, _ := range configA {
-		mapA[k] = true
+	mapB := map[string]bool{}
+	for k, _ := range configB {
+		mapB[k] = true
 	}
 
 	res := make(map[string]string)
-	for k, v := range configB {
-		if _, ok := mapA[k]; !ok {
+	for k, v := range configA {
+		if _, ok := mapB[k]; !ok {
 			res[k] = v
 		}
 	}
@@ -409,7 +335,7 @@ func fetchLatestVersion(organizationName, serviceName, namespaceName string) int
 	err := helper.FetchData(httphelper, &data)
 	if err != nil {
 		fmt.Println(err.Error())
-		return 0
+		os.Exit(1)
 	}
 
 	return data["version"]
@@ -426,7 +352,7 @@ func fetchConfiguration(organizationName, serviceName, namespaceName string, ver
 	err := helper.FetchData(httphelper, &config)
 	if err != nil {
 		fmt.Println(err.Error())
-		return config
+		os.Exit(1)
 	}
 	return config
 }
