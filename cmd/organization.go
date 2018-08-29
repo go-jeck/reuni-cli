@@ -18,6 +18,7 @@ type Organization struct {
 
 var organizationName string
 var key string
+var refreshToken string
 
 var organizationCmd = &cobra.Command{
 	Use:   "organization",
@@ -25,6 +26,7 @@ var organizationCmd = &cobra.Command{
 	Long:  `Manage your organization`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		key = getToken()
+		refreshToken = getRefreshToken()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("organization called")
@@ -40,6 +42,7 @@ var listOrganizationCmd = &cobra.Command{
 			URL:           fmt.Sprintf("%v/organization", "http://127.0.0.1:8080"),
 			Method:        "GET",
 			Authorization: key,
+			RefreshToken:  refreshToken,
 		}
 
 		var organizations []Organization
@@ -76,6 +79,7 @@ var createOrganizationCmd = &cobra.Command{
 			URL:           fmt.Sprintf("%v/organization", "http://127.0.0.1:8080"),
 			Method:        "POST",
 			Authorization: key,
+			RefreshToken:  refreshToken,
 			Payload:       dataJSON,
 		}
 

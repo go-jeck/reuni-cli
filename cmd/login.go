@@ -64,10 +64,11 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		fileHelper := &helper.FileHelper{
-			Payload: fmt.Sprint(res["token"]),
+		credentialHelper := &helper.CredentialHelper{
+			Token:        fmt.Sprint(res["token"]),
+			RefreshToken: fmt.Sprint(res["refresh_token"]),
 		}
-		fileHelper.WriteFile()
+		credentialHelper.Write()
 	},
 }
 

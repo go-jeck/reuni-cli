@@ -33,6 +33,7 @@ var configurationCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if !strings.EqualFold(cmd.CalledAs(), "namespace") {
 			key = getToken()
+			refreshToken = getRefreshToken()
 			if len(organizationName) < 1 {
 				fmt.Println("Invalid Organization")
 				os.Exit(1)
@@ -177,6 +178,7 @@ func displayListVersions() {
 		URL:           fmt.Sprintf("%v/%v/%v/%v/versions", "http://127.0.0.1:8080", organizationName, serviceName, namespaceName),
 		Method:        "GET",
 		Authorization: key,
+		RefreshToken:  refreshToken,
 	}
 
 	data := make(map[string][]int)
@@ -329,6 +331,7 @@ func fetchLatestVersion(organizationName, serviceName, namespaceName string) int
 		URL:           fmt.Sprintf("%v/%v/%v/%v/latest", "http://127.0.0.1:8080", organizationName, serviceName, namespaceName),
 		Method:        "GET",
 		Authorization: key,
+		RefreshToken:  refreshToken,
 	}
 
 	data := make(map[string]int)
@@ -346,6 +349,7 @@ func fetchConfiguration(organizationName, serviceName, namespaceName string, ver
 		URL:           fmt.Sprintf("%v/%v/%v/%v/%v", "http://127.0.0.1:8080", organizationName, serviceName, namespaceName, version),
 		Method:        "GET",
 		Authorization: key,
+		RefreshToken:  refreshToken,
 	}
 
 	var config configView
@@ -362,6 +366,7 @@ func updateConfig(payload []byte) {
 		URL:           fmt.Sprintf("%v/%v/%v/%v", "http://127.0.0.1:8080", organizationName, serviceName, namespaceName),
 		Method:        "POST",
 		Authorization: key,
+		RefreshToken:  refreshToken,
 		Payload:       payload,
 	}
 

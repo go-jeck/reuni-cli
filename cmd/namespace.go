@@ -39,6 +39,7 @@ var namespaceCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if !strings.EqualFold(cmd.CalledAs(), "namespace") {
 			key = getToken()
+			refreshToken = getRefreshToken()
 			if len(organizationName) < 1 {
 				fmt.Println("Invalid Organization")
 				os.Exit(1)
@@ -97,6 +98,7 @@ reuni-cli namespace create -o org -s service -n default -c '{"firstKey":"firstVa
 			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080", organizationName, serviceName),
 			Method:        "POST",
 			Authorization: key,
+			RefreshToken:  refreshToken,
 			Payload:       dataJSON,
 		}
 
@@ -128,6 +130,7 @@ var listNamespaceCmd = &cobra.Command{
 			URL:           fmt.Sprintf("%v/%v/%v/namespaces", "http://127.0.0.1:8080", organizationName, serviceName),
 			Method:        "GET",
 			Authorization: key,
+			RefreshToken:  refreshToken,
 		}
 
 		var namespaces []namespaceView

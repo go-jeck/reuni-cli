@@ -52,7 +52,15 @@ func init() {
 }
 
 func getToken() string {
-	keyfile, err := ioutil.ReadFile("/var/tmp/reuni/key")
+	keyfile, err := ioutil.ReadFile("/var/tmp/reuni/token")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(keyfile)
+}
+
+func getRefreshToken() string {
+	keyfile, err := ioutil.ReadFile("/var/tmp/reuni/refresh")
 	if err != nil {
 		log.Fatal(err)
 	}

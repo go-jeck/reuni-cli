@@ -30,6 +30,7 @@ var serviceCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if !strings.EqualFold(cmd.CalledAs(), "service") {
 			key = getToken()
+			refreshToken = getRefreshToken()
 			if len(organizationName) < 1 {
 				fmt.Println("Invalid Organization")
 				os.Exit(1)
